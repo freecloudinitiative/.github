@@ -1,9 +1,9 @@
 # ☁️ Free Cloud Initiative
 
-[![Documentation](https://img.shields.io/badge/docs-MkDocs%20Material-blue.svg)](docs/)
-[![Terraform](https://img.shields.io/badge/IaC-Terraform-purple.svg)](terraform-automation/)
-[![Ansible](https://img.shields.io/badge/Automation-Ansible-red.svg)](ansible-automation/)
-[![Kubernetes](https://img.shields.io/badge/Orchestration-K3s-326CE5.svg)](k3s-manifests/)
+[![Documentation](https://img.shields.io/badge/docs-MkDocs%20Material-blue.svg)](https://github.com/freecloudinitiative/docs)
+[![Terraform](https://img.shields.io/badge/IaC-Terraform-purple.svg)](https://github.com/freecloudinitiative/terraform-automation)
+[![Ansible](https://img.shields.io/badge/Automation-Ansible-red.svg)](https://github.com/freecloudinitiative/ansible-automation)
+[![Kubernetes](https://img.shields.io/badge/Orchestration-K3s-326CE5.svg)](https://github.com/freecloudinitiative/k3s-manifests)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 > **Empowering Cloud Native Engineers through Open Infrastructure and Hands-on DevOps.**
@@ -33,18 +33,18 @@ freecloudinitiative/
 ```
 
 ### 1. 🌐 Infrastructure as Code (Terraform)
-Located in [`terraform-automation/`](../terraform-automation/):
+Located in [`terraform-automation`](https://github.com/freecloudinitiative/terraform-automation):
 * Declarative resource provisioning across **Google Cloud Platform (GCP)**, **Microsoft Azure**, and **Amazon Web Services (AWS)**.
 * Automated compute instances, virtual private networks (VPCs), firewalls, and storage management.
 
 ### 2. 🔧 Configuration Management & Orchestration (Ansible)
-Located in [`ansible-automation/`](../ansible-automation/):
+Located in [`ansible-automation`](https://github.com/freecloudinitiative/ansible-automation):
 * Automated node bootstrapping, SSH hardening, firewall management (`ufw`), and dependency installation.
 * Automated K3s cluster deployment (control plane and worker nodes setup).
 * Operational playbooks for system maintenance, thermal monitoring, and automated cluster teardown/re-bootstrapping.
 
 ### 3. ☸️ K3s Kubernetes Architecture & Manifests
-Located in [`k3s-manifests/`](../k3s-manifests/):
+Located in [`k3s-manifests`](https://github.com/freecloudinitiative/k3s-manifests):
 * **Infrastructure Stack**:
   * **Ingress & TLS**: Traefik, Cert-Manager with Let's Encrypt integration.
   * **Observability & Monitoring**: Prometheus, Grafana, OpenTelemetry, Loki, Tempo, and Grafana Alloy.
@@ -53,7 +53,7 @@ Located in [`k3s-manifests/`](../k3s-manifests/):
 * **GitOps & App Deployment**: Application manifests organized into infrastructure and user application layers.
 
 ### 4. 📚 Documentation (MkDocs)
-Located in [`docs/`](../docs/):
+Located in [`docs`](https://github.com/freecloudinitiative/docs):
 * Complete technical documentation, setup guides, and architectural decisions built with **MkDocs** and the **Material for MkDocs** theme.
 
 ---
