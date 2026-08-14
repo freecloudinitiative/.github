@@ -1,6 +1,7 @@
 # ☁️ Free Cloud Initiative
 
 [![Documentation](https://img.shields.io/badge/docs-MkDocs%20Material-blue.svg)](https://github.com/freecloudinitiative/docs)
+[![Frontend Console](https://img.shields.io/badge/Console-React%2019%20%7C%20TypeScript-61DAFB.svg)](https://github.com/freecloudinitiative/frontend)
 [![Multi-Cloud IaC](https://img.shields.io/badge/IaC-Multi--Cloud%20Terraform-purple.svg)](https://github.com/freecloudinitiative/terraform-multicloud-infra)
 [![Cloudflare IaC](https://img.shields.io/badge/IaC-Cloudflare%20Terraform-orange.svg)](https://github.com/freecloudinitiative/terraform-cloudflare-infra)
 [![Ansible](https://img.shields.io/badge/Automation-Ansible-red.svg)](https://github.com/freecloudinitiative/ansible-automation)
@@ -23,7 +24,7 @@ This project serves a dual purpose:
 
 ## 🏗️ Architecture & Core Components
 
-The repository is modularly structured into dedicated domains:
+The repository ecosystem is modularly structured into dedicated domains:
 
 ```
 freecloudinitiative/
@@ -31,7 +32,17 @@ freecloudinitiative/
 ├── ☁️ terraform-cloudflare-infra/ # Always-on Cloudflare DNS & edge security via Terraform Cloud
 ├── 🔧 ansible-automation/        # System configuration, security, & K3s node bootstrapping
 ├── ☸️ k3s-manifests/              # Kubernetes architecture, infrastructure & app manifests
-└── 📚 docs/                      # MkDocs project source & technical documentation
+├── 🖥️ frontend/                   # Web Console SPA (React 19, TypeScript, Vite)
+├── 📚 docs/                      # MkDocs project source & technical documentation
+│
+│   # 🔒 Backend Microservices (In Active Development)
+├── 🚪 api-gateway/               # Central API gateway, AuthN & rate-limiting proxy
+├── 🔐 iam-service/               # Identity & Access Management, multi-tenant RBAC
+├── ⚡ compute-service/           # Compute instance lifecycle & Kubernetes reconciliation
+├── 🗄️ database-service/          # CloudNativePG database orchestration & SQL management
+├── 📦 storage-service/           # Object storage & virtual network management
+├── 💻 terminal-gateway/          # Secure WebSocket terminal proxy for pod execution
+└── 🧩 platform-common/           # Shared Go libraries, models & telemetry primitives
 ```
 
 ### 1. 🌐 Multi-Cloud Infrastructure as Code (Terraform)
@@ -59,9 +70,25 @@ Located in [`k3s-manifests`](https://github.com/freecloudinitiative/k3s-manifest
   * **Artifact Registry**: Harbor self-hosted registry setup.
 * **GitOps & App Deployment**: Application manifests organized into infrastructure and user application layers.
 
-### 5. 📚 Documentation (MkDocs)
+### 5. 🖥️ Web Console (React & TypeScript)
+Located in [`frontend`](https://github.com/freecloudinitiative/frontend):
+* **Modern Cloud Management SPA**: Built with **React 19**, **TypeScript**, **Vite**, and **TanStack Query**.
+* Features a sleek terminal-aesthetic user interface, interactive command palette, real-time terminal emulator sessions, SQL query editor, and multi-tenant resource management.
+
+### 6. 📚 Documentation (MkDocs)
 Located in [`docs`](https://github.com/freecloudinitiative/docs):
 * Complete technical documentation, setup guides, and architectural decisions built with **MkDocs** and the **Material for MkDocs** theme.
+
+### 7. 🚧 Backend Microservices *(In Active Development)*
+> *Note: The following backend services are currently in internal development and will be released as they mature.*
+
+* **🚪 api-gateway**: Central API gateway handling external routing, token validation (OIDC/JWT), tenant resolution, and account rate limiting.
+* **🔐 iam-service**: Identity and Access Management service controlling accounts, users, policies, roles, API key issuing/verification, and audit trails.
+* **⚡ compute-service**: Compute Engine orchestration managing virtual compute lifecycles, Kata container runtime isolation, and disk backups.
+* **🗄️ database-service**: Managed PostgreSQL database orchestration via CloudNativePG (CNPG) operator, query execution, and data import tooling.
+* **📦 storage-service**: Object storage bucket/object lifecycle management and software-defined network/firewall controls.
+* **💻 terminal-gateway**: Lightweight, high-security WebSocket gateway enabling interactive browser-based shell access (`pods/exec`) to workloads.
+* **🧩 platform-common**: Foundational Go library providing standard data models, error envelopes, logging, database drivers, and telemetry middleware.
 
 ---
 
