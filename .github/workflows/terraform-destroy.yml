@@ -30,7 +30,7 @@ on:
 jobs:
   terraform-destroy:
     name: "Destroy"
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     permissions:
       contents: read
 
