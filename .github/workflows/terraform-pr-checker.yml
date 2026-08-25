@@ -30,7 +30,7 @@ on:
 jobs:
   terraform-check:
     name: "Format, Validate & Plan"
-    runs-on: self-hosted
+    runs-on: ${{ (contains(inputs.directories, 'civo') || inputs.gcp-backend-prefix == 'civo') && 'ubuntu-latest' || 'self-hosted' }}
     permissions:
       contents: read
 

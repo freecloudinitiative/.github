@@ -30,7 +30,7 @@ on:
 jobs:
   terraform-apply:
     name: "Apply"
-    runs-on: self-hosted
+    runs-on: ${{ (inputs.directory == 'civo' || inputs.gcp-backend-prefix == 'civo') && 'ubuntu-latest' || 'self-hosted' }}
     permissions:
       contents: read
 
