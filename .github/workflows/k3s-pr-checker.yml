@@ -14,6 +14,9 @@ jobs:
     name: Manifest quality
     runs-on: self-hosted
     steps:
+      - name: Sanitize runner Git config
+        shell: bash
+        run: rm -f ~/.gitconfig || true
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -56,6 +59,9 @@ jobs:
     name: Helm lint and render
     runs-on: self-hosted
     steps:
+      - name: Sanitize runner Git config
+        shell: bash
+        run: rm -f ~/.gitconfig || true
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -82,6 +88,9 @@ jobs:
     name: Schema and Helm unit tests
     runs-on: self-hosted
     steps:
+      - name: Sanitize runner Git config
+        shell: bash
+        run: rm -f ~/.gitconfig || true
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
@@ -133,6 +142,9 @@ jobs:
     name: SonarQube analysis
     runs-on: self-hosted
     steps:
+      - name: Sanitize runner Git config
+        shell: bash
+        run: rm -f ~/.gitconfig || true
       - name: Checkout repository
         uses: actions/checkout@v4
         with:

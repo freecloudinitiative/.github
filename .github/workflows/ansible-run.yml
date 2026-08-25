@@ -50,6 +50,9 @@ jobs:
       contents: read
 
     steps:
+      - name: Sanitize runner Git config
+        shell: bash
+        run: rm -f ~/.gitconfig || true
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
