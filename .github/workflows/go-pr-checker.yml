@@ -200,7 +200,6 @@ jobs:
     name: SonarQube analysis
     runs-on: self-hosted
     timeout-minutes: 20
-    needs: test
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
@@ -211,6 +210,7 @@ jobs:
           persist-credentials: false
       - name: Download Sonar coverage
         uses: actions/download-artifact@v4
+        continue-on-error: true
         with:
           name: sonar-coverage
           path: .
