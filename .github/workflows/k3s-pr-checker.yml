@@ -138,7 +138,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Analyze with SonarQube Cloud
-        uses: SonarSource/sonarqube-scan-action@v2
+        uses: SonarSource/sonarqube-scan-action@v8
         with:
           args: >-
             -Dsonar.host.url=https://sonarcloud.io
