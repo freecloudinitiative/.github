@@ -276,6 +276,10 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      - name: Download Go modules
+        if: steps.module.outputs.exists == 'true'
+        shell: bash
+        run: go mod download
       - name: Check for reachable Go vulnerabilities
         if: steps.module.outputs.exists == 'true'
         uses: golang/govulncheck-action@v1
