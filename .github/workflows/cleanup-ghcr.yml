@@ -1,0 +1,21 @@
+name: Cleanup GHCR
+
+on:
+  workflow_call:
+
+permissions:
+  packages: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete untagged containers
+        uses: snok/container-retention-policy@v2
+        with:
+          image-names: ${{ github.repository }}
+          cut-off: 2 days
+          keep-at-least: 3
+          account-type: org
+          org-name: ${{ github.repository_owner }}
+          token: ${{ secrets.GITHUB_TOKEN }}
