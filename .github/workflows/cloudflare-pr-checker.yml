@@ -34,7 +34,7 @@ on:
 jobs:
   cloudflare-check:
     name: "Format, Validate & Plan"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
 
