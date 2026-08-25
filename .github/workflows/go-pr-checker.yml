@@ -48,6 +48,8 @@ on:
         required: false
       SEMGREP_APP_TOKEN:
         required: false
+      GH_ADM_PAT:
+        required: false
 
 permissions:
   contents: read
@@ -66,6 +68,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_ADM_PAT || github.token }}
           fetch-depth: 0
           persist-credentials: false
       - name: Generate GitHub App token for private modules
@@ -142,6 +145,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_ADM_PAT || github.token }}
           fetch-depth: 0
           persist-credentials: false
       - name: Generate GitHub App token for private modules
@@ -226,6 +230,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_ADM_PAT || github.token }}
           fetch-depth: 0
           persist-credentials: false
       - name: Generate GitHub App token for private modules
@@ -303,6 +308,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_ADM_PAT || github.token }}
           fetch-depth: 0
           persist-credentials: false
       - name: Generate GitHub App token for private modules
@@ -383,6 +389,7 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@v4
         with:
+          token: ${{ secrets.GH_ADM_PAT || github.token }}
           fetch-depth: 0
           persist-credentials: false
       - name: Generate GitHub App token for private modules
