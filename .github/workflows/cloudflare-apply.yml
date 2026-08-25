@@ -1,4 +1,4 @@
-name: Terraform Apply
+name: Cloudflare Apply
 
 on:
   workflow_call:
@@ -15,18 +15,20 @@ on:
         required: false
         type: string
         default: ''
-      cluster_mode:
-        required: false
-        type: string
-        default: 'simple'
     secrets:
       GCP_SA_KEY:
         required: false
       GCP_PROJECT_ID:
         required: false
+      CLOUDFLARE_API_TOKEN:
+        required: false
+      CLOUDFLARE_ACCOUNT_ID:
+        required: false
+      CLOUDFLARE_ZONE_ID:
+        required: false
 
 jobs:
-  terraform-apply:
+  cloudflare-apply:
     name: "Apply"
     runs-on: ubuntu-latest
     permissions:
@@ -68,15 +70,9 @@ jobs:
 
       - name: Terraform Apply
         env:
-          TF_VAR_cluster_mode: ${{ inputs.cluster_mode }}
-          CIVO_TOKEN: ${{ secrets.CIVO_TOKEN }}
-          TF_VAR_linode_token: ${{ secrets.LINODE_TOKEN }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         run: |
           cd ${{ inputs.directory }}
           terraform apply -auto-approve -input=false
