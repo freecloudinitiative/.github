@@ -60,6 +60,9 @@ jobs:
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
     steps:
+      - name: Clean up global Git config
+        shell: bash
+        run: git config --global --unset-all http.https://github.com/freecloudinitiative/.extraheader 2>/dev/null || true
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -133,6 +136,9 @@ jobs:
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
     steps:
+      - name: Clean up global Git config
+        shell: bash
+        run: git config --global --unset-all http.https://github.com/freecloudinitiative/.extraheader 2>/dev/null || true
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -214,6 +220,9 @@ jobs:
       GOPRIVATE: github.com/freecloudinitiative/*
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
+      - name: Clean up global Git config
+        shell: bash
+        run: git config --global --unset-all http.https://github.com/freecloudinitiative/.extraheader 2>/dev/null || true
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -288,6 +297,9 @@ jobs:
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
     steps:
+      - name: Clean up global Git config
+        shell: bash
+        run: git config --global --unset-all http.https://github.com/freecloudinitiative/.extraheader 2>/dev/null || true
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -365,6 +377,9 @@ jobs:
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
     steps:
+      - name: Clean up global Git config
+        shell: bash
+        run: git config --global --unset-all http.https://github.com/freecloudinitiative/.extraheader 2>/dev/null || true
       - name: Check out repository
         uses: actions/checkout@v4
         with:
