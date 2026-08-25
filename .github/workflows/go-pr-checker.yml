@@ -55,7 +55,7 @@ permissions:
 jobs:
   code-quality-and-lint:
     name: Code quality and lint
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 30
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
@@ -123,7 +123,7 @@ jobs:
 
   test:
     name: Tests and coverage
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 45
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
@@ -198,7 +198,7 @@ jobs:
 
   sonar:
     name: SonarQube analysis
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 20
     needs: test
     env:
@@ -239,7 +239,7 @@ jobs:
 
   security-scans:
     name: Security scans
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 30
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
@@ -307,7 +307,7 @@ jobs:
 
   container-smoke-test:
     name: Container smoke test
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     timeout-minutes: 45
     env:
       GOPRIVATE: github.com/freecloudinitiative/*

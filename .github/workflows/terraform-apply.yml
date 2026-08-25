@@ -30,7 +30,7 @@ on:
 jobs:
   terraform-apply:
     name: "Apply"
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
 

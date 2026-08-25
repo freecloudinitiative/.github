@@ -12,7 +12,7 @@ permissions:
 jobs:
   manifest-quality:
     name: Manifest quality
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -54,7 +54,7 @@ jobs:
 
   helm-validation:
     name: Helm lint and render
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -80,7 +80,7 @@ jobs:
 
   schema-and-unit-tests:
     name: Schema and Helm unit tests
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -131,7 +131,7 @@ jobs:
 
   sonar:
     name: SonarQube analysis
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
