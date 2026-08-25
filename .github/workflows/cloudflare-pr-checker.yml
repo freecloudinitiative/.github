@@ -1,4 +1,4 @@
-name: Terraform PR Check
+name: Cloudflare PR Check
 
 on:
   workflow_call:
@@ -10,7 +10,7 @@ on:
       directories:
         required: false
         type: string
-        default: '["."]' # JSON array of directories to validate
+        default: '["."]'
       plan:
         required: false
         type: boolean
@@ -24,9 +24,15 @@ on:
         required: false
       GCP_PROJECT_ID:
         required: false
+      CLOUDFLARE_API_TOKEN_PLAN:
+        required: false
+      CLOUDFLARE_ACCOUNT_ID:
+        required: false
+      CLOUDFLARE_ZONE_ID:
+        required: false
 
 jobs:
-  terraform-check:
+  cloudflare-check:
     name: "Format, Validate & Plan"
     runs-on: ubuntu-latest
     permissions:
@@ -84,14 +90,9 @@ jobs:
       - name: Terraform Plan
         if: inputs.plan
         env:
-          CIVO_TOKEN: ${{ secrets.CIVO_TOKEN }}
-          TF_VAR_linode_token: ${{ secrets.LINODE_TOKEN }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN_PLAN }}
+          TF_VAR_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
         run: |
           cd ${{ matrix.directory }}
           terraform plan -no-color -input=false
