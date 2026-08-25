@@ -1,0 +1,78 @@
+name: Terraform Apply
+
+on:
+  workflow_call:
+    inputs:
+      terraform_version:
+        required: false
+        type: string
+        default: '1.10.5'
+      directory:
+        required: false
+        type: string
+        default: '.'
+      gcp-backend-prefix:
+        required: false
+        type: string
+        default: ''
+    secrets:
+      GCP_SA_KEY:
+        required: false
+      GCP_PROJECT_ID:
+        required: false
+      CLOUDFLARE_API_TOKEN:
+        required: false
+      CLOUDFLARE_ACCOUNT_ID:
+        required: false
+      CLOUDFLARE_ZONE_ID:
+        required: false
+
+jobs:
+  terraform-apply:
+    name: "Apply"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+
+      - name: Authenticate to Google Cloud (state bucket)
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Generate Remote Backend for CI
+        if: inputs.gcp-backend-prefix != ''
+        run: |
+          cd ${{ inputs.directory }}
+          cat <<EOF > backend_ci.tf
+          terraform {
+            backend "gcs" {
+              bucket = "tf-state-${{ secrets.GCP_PROJECT_ID }}"
+              prefix = "${{ inputs.gcp-backend-prefix }}"
+            }
+          }
+          EOF
+
+      - name: Terraform Init
+        run: |
+          cd ${{ inputs.directory }}
+          terraform init -reconfigure
+
+      - name: Terraform Apply
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          TF_VAR_account_id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TF_VAR_zone_id: ${{ secrets.CLOUDFLARE_ZONE_ID }}
+        run: |
+          cd ${{ inputs.directory }}
+          terraform apply -auto-approve -input=false

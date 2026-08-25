@@ -1,0 +1,373 @@
+name: Go PR Checker
+
+on:
+  workflow_call:
+    inputs:
+      go-version:
+        required: false
+        type: string
+        default: '1.24'
+      enable-envtest:
+        required: false
+        type: boolean
+        default: false
+      envtest-kube-version:
+        required: false
+        type: string
+        default: '1.36.2'
+      test-tags:
+        required: false
+        type: string
+        default: ''
+      run-storage-isolation:
+        required: false
+        type: boolean
+        default: false
+      run-db-integration:
+        required: false
+        type: boolean
+        default: false
+      run-db-dataloss:
+        required: false
+        type: boolean
+        default: false
+      run-terminal-e2e:
+        required: false
+        type: boolean
+        default: false
+      has-sqlc:
+        required: false
+        type: boolean
+        default: false
+    secrets:
+      CI_APP_ID:
+        required: false
+      CI_APP_PRIVATE_KEY:
+        required: false
+      SONAR_TOKEN:
+        required: false
+      SEMGREP_APP_TOKEN:
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  code-quality-and-lint:
+    name: Code quality and lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GOPRIVATE: github.com/freecloudinitiative/*
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate GitHub App token for private modules
+        id: app-token
+        continue-on-error: true
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.CI_APP_ID }}
+          private-key: ${{ secrets.CI_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - name: Configure Git for private modules
+        if: steps.app-token.outputs.token != ''
+        run: |
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/freecloudinitiative/".insteadOf "https://github.com/freecloudinitiative/"
+      - name: Detect Go module
+        id: module
+        shell: bash
+        run: |
+          if [[ -f go.mod ]]; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+            echo 'No go.mod yet; quality checks will activate after the service scaffold lands.'
+          fi
+      - name: Set up Go
+        if: steps.module.outputs.exists == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Verify module tidy
+        if: steps.module.outputs.exists == 'true'
+        shell: bash
+        run: make tidy
+      - name: Verify gofmt
+        if: steps.module.outputs.exists == 'true'
+        shell: bash
+        run: make fmt-check
+      - name: Set up sqlc
+        if: steps.module.outputs.exists == 'true' && inputs.has-sqlc
+        uses: sqlc-dev/setup-sqlc@v4
+        with:
+          sqlc-version: '1.31.1'
+      - name: Assert generated sqlc code is current
+        if: steps.module.outputs.exists == 'true' && inputs.has-sqlc
+        shell: bash
+        run: |
+          sqlc generate
+          git diff --exit-code internal/db
+      - name: Run golangci-lint with gosec
+        if: steps.module.outputs.exists == 'true'
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.59.1
+          args: --timeout=5m --enable=gosec
+          skip-cache: false
+
+  test:
+    name: Tests and coverage
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GOPRIVATE: github.com/freecloudinitiative/*
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate GitHub App token for private modules
+        id: app-token
+        continue-on-error: true
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.CI_APP_ID }}
+          private-key: ${{ secrets.CI_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - name: Configure Git for private modules
+        if: steps.app-token.outputs.token != ''
+        run: |
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/freecloudinitiative/".insteadOf "https://github.com/freecloudinitiative/"
+      - name: Detect Go module
+        id: module
+        shell: bash
+        run: |
+          if [[ -f go.mod ]]; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up Go
+        if: steps.module.outputs.exists == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Install envtest assets when required
+        if: steps.module.outputs.exists == 'true' && inputs.enable-envtest
+        shell: bash
+        run: |
+          assets="$(go run sigs.k8s.io/controller-runtime/tools/setup-envtest@latest use "${{ inputs.envtest-kube-version }}" -p path)"
+          echo "KUBEBUILDER_ASSETS=$assets" >> "$GITHUB_ENV"
+      - name: Run tests with race detection and coverage
+        if: steps.module.outputs.exists == 'true'
+        shell: bash
+        run: |
+          test_tags=()
+          if [[ -n "${{ inputs.test-tags }}" ]]; then
+            test_tags=(${{ inputs.test-tags }})
+          fi
+          go test -v -race "${test_tags[@]}" -coverprofile=coverage.out -covermode=atomic ./...
+      - name: Run storage tenancy isolation suite with -count=3
+        if: steps.module.outputs.exists == 'true' && inputs.run-storage-isolation
+        shell: bash
+        run: go test -race -count=3 ./internal/integration/... -run TestIsolation
+      - name: Run database E2E integration tests
+        if: steps.module.outputs.exists == 'true' && inputs.run-db-integration
+        shell: bash
+        run: make test-integration
+      - name: Run database data-loss safety suite
+        if: steps.module.outputs.exists == 'true' && inputs.run-db-dataloss
+        shell: bash
+        run: make test-dataloss
+      - name: Upload Sonar coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonar-coverage
+          path: coverage.out
+          if-no-files-found: error
+          retention-days: 1
+
+  sonar:
+    name: SonarQube analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: test
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Download Sonar coverage
+        uses: actions/download-artifact@v4
+        with:
+          name: sonar-coverage
+          path: .
+      - name: Analyze with SonarQube Cloud
+        uses: SonarSource/sonarqube-scan-action@v2
+        with:
+          args: >-
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.organization=${{ github.repository_owner }}
+            -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        if: >-
+          env.SONAR_TOKEN != '' &&
+          (github.event_name != 'pull_request' ||
+          github.event.pull_request.head.repo.full_name == github.repository)
+      - name: Report unavailable Sonar token
+        if: >-
+          env.SONAR_TOKEN == '' ||
+          (github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name != github.repository)
+        shell: bash
+        run: |
+          echo "::warning::SONAR_TOKEN is not available; skipping SonarQube analysis."
+          echo "## SonarQube analysis skipped" >> "$GITHUB_STEP_SUMMARY"
+
+  security-scans:
+    name: Security scans
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GOPRIVATE: github.com/freecloudinitiative/*
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate GitHub App token for private modules
+        id: app-token
+        continue-on-error: true
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.CI_APP_ID }}
+          private-key: ${{ secrets.CI_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - name: Configure Git for private modules
+        if: steps.app-token.outputs.token != ''
+        run: |
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/freecloudinitiative/".insteadOf "https://github.com/freecloudinitiative/"
+      - name: Detect Go module
+        id: module
+        shell: bash
+        run: |
+          if [[ -f go.mod ]]; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up Go
+        if: steps.module.outputs.exists == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - name: Check for reachable Go vulnerabilities
+        if: steps.module.outputs.exists == 'true'
+        uses: golang/govulncheck-action@v1
+        with:
+          go-version-input: ''
+          go-version-file: go.mod
+          repo-checkout: false
+      - name: Set up Python for Semgrep
+        if: steps.module.outputs.exists == 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Semgrep Community Edition
+        if: steps.module.outputs.exists == 'true'
+        shell: bash
+        run: python -m pip install semgrep==1.171.0
+      - name: Scan with Semgrep App
+        if: >-
+          steps.module.outputs.exists == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+        shell: bash
+        run: semgrep ci
+        env:
+          SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
+      - name: Scan fork pull request with Semgrep Community Edition
+        if: >-
+          steps.module.outputs.exists == 'true' && github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository
+        shell: bash
+        run: semgrep scan --config=auto --error --metrics=off --exclude=vendor .
+
+  container-smoke-test:
+    name: Container smoke test
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GOPRIVATE: github.com/freecloudinitiative/*
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Generate GitHub App token for private modules
+        id: app-token
+        continue-on-error: true
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.CI_APP_ID }}
+          private-key: ${{ secrets.CI_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+      - name: Configure Git for private modules
+        if: steps.app-token.outputs.token != ''
+        run: |
+          git config --global url."https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/freecloudinitiative/".insteadOf "https://github.com/freecloudinitiative/"
+      - name: Detect Go module
+        id: module
+        shell: bash
+        run: |
+          if [[ -f go.mod ]]; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+      - name: Set up Go
+        if: steps.module.outputs.exists == 'true'
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+          cache-dependency-path: go.sum
+      - name: Set up Docker Buildx
+        if: steps.module.outputs.exists == 'true' && hashFiles('Dockerfile') != ''
+        uses: docker/setup-buildx-action@v3
+      - name: Build arm64 container image (smoke test)
+        if: steps.module.outputs.exists == 'true' && hashFiles('Dockerfile') != ''
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile
+          platforms: linux/arm64
+          build-args: |
+            GOARCH=arm64
+            CGO_ENABLED=0
+          secrets: |
+            "gh_token=${{ steps.app-token.outputs.token != '' && steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}"
+          push: false
+          cache-from: type=gha,scope=arm64-container
+          cache-to: type=gha,mode=max,scope=arm64-container
+      - name: Run terminal real pods and exec tier
+        if: steps.module.outputs.exists == 'true' && inputs.run-terminal-e2e
+        shell: bash
+        run: make test-e2e KIND='go tool kind'
+      - name: Confirm no container artifact is declared
+        if: steps.module.outputs.exists == 'true' && hashFiles('Dockerfile') == ''
+        shell: bash
+        run: echo 'No Dockerfile is present; no container smoke test is required.'
