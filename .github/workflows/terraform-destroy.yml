@@ -1,0 +1,85 @@
+name: Terraform Destroy
+
+on:
+  workflow_call:
+    inputs:
+      terraform_version:
+        required: false
+        type: string
+        default: '1.10.5'
+      directory:
+        required: false
+        type: string
+        default: '.'
+      gcp-backend-prefix:
+        required: false
+        type: string
+        default: ''
+      cluster_mode:
+        required: false
+        type: string
+        default: 'simple'
+    secrets:
+      GCP_SA_KEY:
+        required: false
+      GCP_PROJECT_ID:
+        required: false
+      GH_ADM_PAT:
+        required: false
+
+jobs:
+  terraform-destroy:
+    name: "Destroy"
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ inputs.terraform_version }}
+
+      - name: Authenticate to Google Cloud (state bucket)
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Generate Remote Backend for CI
+        if: inputs.gcp-backend-prefix != ''
+        run: |
+          cd ${{ inputs.directory }}
+          cat <<EOF > backend_ci.tf
+          terraform {
+            backend "gcs" {
+              bucket = "tf-state-${{ secrets.GCP_PROJECT_ID }}"
+              prefix = "${{ inputs.gcp-backend-prefix }}"
+            }
+          }
+          EOF
+
+      - name: Terraform Init
+        run: |
+          cd ${{ inputs.directory }}
+          terraform init -reconfigure
+
+      - name: Terraform Destroy
+        env:
+          TF_VAR_cluster_mode: ${{ inputs.cluster_mode }}
+          TF_VAR_github_pat: ${{ secrets.GH_ADM_PAT }}
+          CIVO_TOKEN: ${{ secrets.CIVO_TOKEN }}
+          TF_VAR_linode_token: ${{ secrets.LINODE_TOKEN }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+          ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+          ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+          ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+        run: |
+          cd ${{ inputs.directory }}
+          terraform destroy -auto-approve -input=false
