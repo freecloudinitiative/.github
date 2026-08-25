@@ -1,0 +1,21 @@
+name: Ansible Validate
+
+on:
+  workflow_call:
+
+jobs:
+  validate-secrets:
+    name: Validate Vault Secrets
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Guard — verify secret.yml is encrypted
+        run: |
+          head -1 group_vars/all/secret.yml | grep -q '^\$ANSIBLE_VAULT;1\.[12];AES256$' \
+            || { echo "secret.yml is missing, not encrypted, or malformed — refusing to continue"; exit 1; }
