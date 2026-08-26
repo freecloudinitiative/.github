@@ -215,6 +215,7 @@ jobs:
 
   sonar:
     name: SonarQube analysis
+    needs: test
     runs-on: self-hosted
     timeout-minutes: 20
     env:
@@ -248,7 +249,6 @@ jobs:
           fi
       - name: Download Sonar coverage
         uses: actions/download-artifact@v4
-        continue-on-error: true
         with:
           name: sonar-coverage
           path: .
