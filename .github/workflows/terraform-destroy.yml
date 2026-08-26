@@ -99,6 +99,7 @@ jobs:
 
       - name: Terraform Destroy
         env:
+          TF_VAR_gcp_project_id: ${{ secrets.GCP_PROJECT_ID }}
           TF_VAR_cluster_mode: ${{ inputs.cluster_mode }}
           TF_VAR_github_pat: ${{ secrets.GH_ADM_PAT }}
           CIVO_TOKEN: ${{ secrets.CIVO_TOKEN }}
