@@ -156,9 +156,10 @@ jobs:
       - name: Configure Git for private modules
         if: steps.app-token.outputs.token != ''
         run: |
-          git config --global --unset-all url."https://github.com/freecloudinitiative/".insteadOf 2>/dev/null || true
           auth_header="AUTHORIZATION: basic $(echo -n "x-access-token:${{ steps.app-token.outputs.token }}" | base64 | tr -d '\n')"
-          git config --global http.https://github.com/freecloudinitiative/.extraheader "$auth_header"
+          echo "GIT_CONFIG_COUNT=1" >> "$GITHUB_ENV"
+          echo "GIT_CONFIG_KEY_0=http.https://github.com/freecloudinitiative/.extraheader" >> "$GITHUB_ENV"
+          echo "GIT_CONFIG_VALUE_0=$auth_header" >> "$GITHUB_ENV"
           if [[ -d "$HOME/go/pkg/mod/cache/vcs" ]]; then
             find "$HOME/go/pkg/mod/cache/vcs" -name config -exec sed -i 's|x-access-token:[^@]*@||g' {} + 2>/dev/null || true
           fi
@@ -241,9 +242,10 @@ jobs:
       - name: Configure Git for private modules
         if: steps.app-token.outputs.token != ''
         run: |
-          git config --global --unset-all url."https://github.com/freecloudinitiative/".insteadOf 2>/dev/null || true
           auth_header="AUTHORIZATION: basic $(echo -n "x-access-token:${{ steps.app-token.outputs.token }}" | base64 | tr -d '\n')"
-          git config --global http.https://github.com/freecloudinitiative/.extraheader "$auth_header"
+          echo "GIT_CONFIG_COUNT=1" >> "$GITHUB_ENV"
+          echo "GIT_CONFIG_KEY_0=http.https://github.com/freecloudinitiative/.extraheader" >> "$GITHUB_ENV"
+          echo "GIT_CONFIG_VALUE_0=$auth_header" >> "$GITHUB_ENV"
           if [[ -d "$HOME/go/pkg/mod/cache/vcs" ]]; then
             find "$HOME/go/pkg/mod/cache/vcs" -name config -exec sed -i 's|x-access-token:[^@]*@||g' {} + 2>/dev/null || true
           fi
@@ -318,9 +320,10 @@ jobs:
       - name: Configure Git for private modules
         if: steps.app-token.outputs.token != ''
         run: |
-          git config --global --unset-all url."https://github.com/freecloudinitiative/".insteadOf 2>/dev/null || true
           auth_header="AUTHORIZATION: basic $(echo -n "x-access-token:${{ steps.app-token.outputs.token }}" | base64 | tr -d '\n')"
-          git config --global http.https://github.com/freecloudinitiative/.extraheader "$auth_header"
+          echo "GIT_CONFIG_COUNT=1" >> "$GITHUB_ENV"
+          echo "GIT_CONFIG_KEY_0=http.https://github.com/freecloudinitiative/.extraheader" >> "$GITHUB_ENV"
+          echo "GIT_CONFIG_VALUE_0=$auth_header" >> "$GITHUB_ENV"
           if [[ -d "$HOME/go/pkg/mod/cache/vcs" ]]; then
             find "$HOME/go/pkg/mod/cache/vcs" -name config -exec sed -i 's|x-access-token:[^@]*@||g' {} + 2>/dev/null || true
           fi
@@ -398,9 +401,10 @@ jobs:
       - name: Configure Git for private modules
         if: steps.app-token.outputs.token != ''
         run: |
-          git config --global --unset-all url."https://github.com/freecloudinitiative/".insteadOf 2>/dev/null || true
           auth_header="AUTHORIZATION: basic $(echo -n "x-access-token:${{ steps.app-token.outputs.token }}" | base64 | tr -d '\n')"
-          git config --global http.https://github.com/freecloudinitiative/.extraheader "$auth_header"
+          echo "GIT_CONFIG_COUNT=1" >> "$GITHUB_ENV"
+          echo "GIT_CONFIG_KEY_0=http.https://github.com/freecloudinitiative/.extraheader" >> "$GITHUB_ENV"
+          echo "GIT_CONFIG_VALUE_0=$auth_header" >> "$GITHUB_ENV"
           if [[ -d "$HOME/go/pkg/mod/cache/vcs" ]]; then
             find "$HOME/go/pkg/mod/cache/vcs" -name config -exec sed -i 's|x-access-token:[^@]*@||g' {} + 2>/dev/null || true
           fi
