@@ -26,11 +26,29 @@ on:
         required: false
       GH_ADM_PAT:
         required: false
+      AZURE_CREDENTIALS:
+        required: false
+      ARM_CLIENT_ID:
+        required: false
+      ARM_CLIENT_SECRET:
+        required: false
+      ARM_SUBSCRIPTION_ID:
+        required: false
+      ARM_TENANT_ID:
+        required: false
+      CIVO_TOKEN:
+        required: false
+      LINODE_TOKEN:
+        required: false
+      AWS_ACCESS_KEY_ID:
+        required: false
+      AWS_SECRET_ACCESS_KEY:
+        required: false
 
 jobs:
   terraform-apply:
     name: "Apply"
-    runs-on: ${{ (inputs.directory == 'civo' || inputs.gcp-backend-prefix == 'civo') && 'ubuntu-latest' || 'self-hosted' }}
+    runs-on: ubuntu-latest
     permissions:
       contents: read
 
@@ -52,6 +70,14 @@ jobs:
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Authenticate to Azure
+        if: env.AZURE_CREDENTIALS != ''
+        env:
+          AZURE_CREDENTIALS: ${{ secrets.AZURE_CREDENTIALS }}
+        uses: azure/login@v2
+        with:
+          creds: ${{ env.AZURE_CREDENTIALS }}
 
       - name: Generate Remote Backend for CI
         if: inputs.gcp-backend-prefix != ''
