@@ -85,6 +85,7 @@ jobs:
 
   sonar:
     name: SonarQube analysis
+    needs: test
     runs-on: self-hosted
     timeout-minutes: 30
     env:
