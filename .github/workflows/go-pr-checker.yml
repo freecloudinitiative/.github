@@ -122,12 +122,16 @@ jobs:
         run: |
           sqlc generate
           git diff --exit-code internal/db
+      - name: Download Go modules
+        if: steps.module.outputs.exists == 'true'
+        shell: bash
+        run: go mod download
       - name: Run golangci-lint with gosec
         if: steps.module.outputs.exists == 'true'
         uses: golangci/golangci-lint-action@v7
         with:
           version: v2.12.2
-          args: --timeout=5m --enable=gosec
+          args: --timeout=10m --enable=gosec
           skip-cache: false
 
   test:
