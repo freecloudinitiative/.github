@@ -59,6 +59,7 @@ jobs:
     timeout-minutes: 30
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
+      TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
       - name: Sanitize runner Git config
         shell: bash
@@ -132,7 +133,8 @@ jobs:
         with:
           version: v2.12.2
           args: --timeout=10m --enable=gosec
-          skip-cache: false
+          skip-cache: true
+          skip-save-cache: true
 
   test:
     name: Tests and coverage
@@ -140,6 +142,7 @@ jobs:
     timeout-minutes: 45
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
+      TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
       - name: Sanitize runner Git config
         shell: bash
@@ -304,6 +307,7 @@ jobs:
     timeout-minutes: 30
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
+      TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
       - name: Sanitize runner Git config
         shell: bash
@@ -385,6 +389,7 @@ jobs:
     timeout-minutes: 45
     env:
       GOPRIVATE: github.com/freecloudinitiative/*
+      TESTCONTAINERS_RYUK_DISABLED: 'true'
     steps:
       - name: Sanitize runner Git config
         shell: bash
