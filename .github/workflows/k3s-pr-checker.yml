@@ -29,14 +29,20 @@ jobs:
         run: pip install yamllint
       - name: Install yq
         run: |
+          case "${RUNNER_ARCH}" in
+            X64) YQ_ARCH=amd64 ;;
+            ARM64) YQ_ARCH=arm64 ;;
+            *) echo "::error::Unsupported runner architecture: ${RUNNER_ARCH}"; exit 1 ;;
+          esac
           mkdir -p "$HOME/bin"
-          curl -sSL "https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_amd64" -o "$HOME/bin/yq"
+          curl -sSL "https://github.com/mikefarah/yq/releases/download/v4.44.2/yq_linux_${YQ_ARCH}" -o "$HOME/bin/yq"
           chmod +x "$HOME/bin/yq"
           echo "$HOME/bin" >> "$GITHUB_PATH"
       - name: Run yamllint
         run: yamllint .
       - name: Validate YAML files with yq
         run: |
+          yq --version
           for f in $(find infrastructure applications -type f \( -name "*.yaml" -o -name "*.yml" \) -not -path "*/templates/*"); do
             yq 'true' "$f" > /dev/null || (echo "ERROR: Invalid YAML syntax in $f" && exit 1)
           done
@@ -106,9 +112,19 @@ jobs:
       - name: Install kubeconform
         run: |
           KUBECONFORM_VERSION=v0.8.0
-          KUBECONFORM_SHA256="9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883"
+          case "${RUNNER_ARCH}" in
+            X64)
+              KUBECONFORM_ARCH=amd64
+              KUBECONFORM_SHA256="9bc2bffbf71f261128533edaf912153948b7ff238f9a531ae6d34466ec287883"
+              ;;
+            ARM64)
+              KUBECONFORM_ARCH=arm64
+              KUBECONFORM_SHA256="1f53fc8e81258197a35e8603054162a5af1de8c5af13746c71ab680d9534ed87"
+              ;;
+            *) echo "::error::Unsupported runner architecture: ${RUNNER_ARCH}"; exit 1 ;;
+          esac
           mkdir -p "$HOME/bin"
-          curl -sSL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-amd64.tar.gz" -o /tmp/kubeconform.tar.gz
+          curl -sSL "https://github.com/yannh/kubeconform/releases/download/${KUBECONFORM_VERSION}/kubeconform-linux-${KUBECONFORM_ARCH}.tar.gz" -o /tmp/kubeconform.tar.gz
           echo "${KUBECONFORM_SHA256}  /tmp/kubeconform.tar.gz" | sha256sum -c -
           tar xz -C "$HOME/bin" -f /tmp/kubeconform.tar.gz kubeconform
           rm /tmp/kubeconform.tar.gz
@@ -125,10 +141,20 @@ jobs:
       - name: Install helm-unittest
         run: |
           HELM_UNITTEST_VERSION=v1.1.2
-          HELM_UNITTEST_SHA256="de03d6b7ba7683282064702d0b36fbbe812ab2a22691fa3a8b2ce57c2682609c"
+          case "${RUNNER_ARCH}" in
+            X64)
+              HELM_UNITTEST_ARCH=amd64
+              HELM_UNITTEST_SHA256="de03d6b7ba7683282064702d0b36fbbe812ab2a22691fa3a8b2ce57c2682609c"
+              ;;
+            ARM64)
+              HELM_UNITTEST_ARCH=arm64
+              HELM_UNITTEST_SHA256="5f8d24d163b65a9244c4371078bfecaa236f7f6807fd8e923700783db78c1626"
+              ;;
+            *) echo "::error::Unsupported runner architecture: ${RUNNER_ARCH}"; exit 1 ;;
+          esac
           PLUGIN_DIR="$(helm env HELM_PLUGINS)/unittest"
           mkdir -p "$PLUGIN_DIR"
-          curl -sSL "https://github.com/helm-unittest/helm-unittest/releases/download/${HELM_UNITTEST_VERSION}/helm-unittest-linux-amd64-1.1.2.tgz" -o /tmp/helm-unittest.tgz
+          curl -sSL "https://github.com/helm-unittest/helm-unittest/releases/download/${HELM_UNITTEST_VERSION}/helm-unittest-linux-${HELM_UNITTEST_ARCH}-1.1.2.tgz" -o /tmp/helm-unittest.tgz
           echo "${HELM_UNITTEST_SHA256}  /tmp/helm-unittest.tgz" | sha256sum -c -
           tar xz -C "$PLUGIN_DIR" -f /tmp/helm-unittest.tgz
           rm /tmp/helm-unittest.tgz
