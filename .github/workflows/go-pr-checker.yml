@@ -127,11 +127,25 @@ jobs:
         if: steps.module.outputs.exists == 'true'
         shell: bash
         run: go mod download
-      - name: Run golangci-lint with gosec
+      - name: Install golangci-lint in job-local directory
         if: steps.module.outputs.exists == 'true'
-        uses: golangci/golangci-lint-action@v7
+        # The action extracts its binary below HOME. Self-hosted runner
+        # processes share /home/github, so concurrent jobs can otherwise
+        # overwrite a binary another job is executing (ETXTBSY). Keep the
+        # install job-local, and use the Node 24 action release.
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a  # v9.3.0
+        env:
+          HOME: ${{ runner.temp }}/golangci-lint-${{ github.run_id }}-${{ github.run_attempt }}-${{ github.job }}
         with:
           version: v2.12.2
+          install-only: true
+          skip-cache: true
+          skip-save-cache: true
+      - name: Run golangci-lint with gosec
+        if: steps.module.outputs.exists == 'true'
+        uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a  # v9.3.0
+        with:
+          install-mode: none
           args: --timeout=10m --enable=gosec
           skip-cache: true
           skip-save-cache: true
