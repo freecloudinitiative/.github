@@ -18,6 +18,12 @@ jobs:
       - name: Sanitize runner Git config
         shell: bash
         run: rm -f ~/.gitconfig || true
+      - name: Free disk space
+        shell: bash
+        run: |
+          rm -rf node_modules || true
+          npm cache clean --force || true
+          df -h
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -40,6 +46,12 @@ jobs:
       - name: Sanitize runner Git config
         shell: bash
         run: rm -f ~/.gitconfig || true
+      - name: Free disk space
+        shell: bash
+        run: |
+          rm -rf node_modules || true
+          npm cache clean --force || true
+          df -h
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -62,6 +74,12 @@ jobs:
       - name: Sanitize runner Git config
         shell: bash
         run: rm -f ~/.gitconfig || true
+      - name: Free disk space
+        shell: bash
+        run: |
+          rm -rf node_modules || true
+          npm cache clean --force || true
+          df -h
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -157,3 +175,4 @@ jobs:
           push: false
           cache-from: type=gha,scope=arm64-container
           cache-to: type=gha,mode=max,scope=arm64-container
+

@@ -155,6 +155,12 @@ jobs:
       - name: Sanitize runner Git config
         shell: bash
         run: rm -f ~/.gitconfig || true
+      - name: Reclaim disk space (Ryuk is disabled on this runner)
+        shell: bash
+        run: |
+          docker ps -aq | xargs -r docker stop
+          docker system prune -af --volumes
+          df -h
       - name: Check out repository
         uses: actions/checkout@v4
         with:
@@ -402,6 +408,12 @@ jobs:
       - name: Sanitize runner Git config
         shell: bash
         run: rm -f ~/.gitconfig || true
+      - name: Reclaim disk space (Ryuk is disabled on this runner)
+        shell: bash
+        run: |
+          docker ps -aq | xargs -r docker stop
+          docker system prune -af --volumes
+          df -h
       - name: Check out repository
         uses: actions/checkout@v4
         with:
