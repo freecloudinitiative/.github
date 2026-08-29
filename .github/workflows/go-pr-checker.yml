@@ -130,9 +130,17 @@ jobs:
       - name: Run golangci-lint with gosec
         if: steps.module.outputs.exists == 'true'
         uses: golangci/golangci-lint-action@v7
+        env:
+          # The self-hosted runners are memory-constrained arm64 (Raspberry
+          # Pi) nodes. golangci-lint's default concurrency is GOMAXPROCS,
+          # and gosec/staticcheck's SSA-based analysis is memory-hungry
+          # enough per worker that full concurrency OOM-kills the process
+          # (exit 137) on these nodes. GOMEMLIMIT forces more aggressive GC
+          # instead of growing the heap to the point of an OOM kill.
+          GOMEMLIMIT: 2500MiB
         with:
           version: v2.12.2
-          args: --timeout=10m --enable=gosec
+          args: --timeout=10m --enable=gosec --concurrency=2
           skip-cache: true
           skip-save-cache: true
 
