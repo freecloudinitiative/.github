@@ -32,6 +32,10 @@ on:
         description: 'IP for worker-3'
         required: true
         type: string
+      worker_4_ip:
+        description: 'IP for worker-4 (optional)'
+        required: false
+        type: string
     secrets:
       GCP_SSH_PRIVATE_KEY:
         required: false
@@ -121,6 +125,7 @@ jobs:
           WORKER_1_IP: ${{ inputs.worker_1_ip }}
           WORKER_2_IP: ${{ inputs.worker_2_ip }}
           WORKER_3_IP: ${{ inputs.worker_3_ip }}
+          WORKER_4_IP: ${{ inputs.worker_4_ip }}
         run: |
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
@@ -131,6 +136,7 @@ jobs:
           W1="${WORKER_1_IP}"
           W2="${WORKER_2_IP}"
           W3="${WORKER_3_IP}"
+          W4="${WORKER_4_IP}"
 
           cat << EOF > ~/.ssh/config
           Host master-1
@@ -166,6 +172,14 @@ jobs:
           EOF
           fi
 
+          if [ -n "$W4" ]; then
+            cat << EOF >> ~/.ssh/config
+          Host worker-4
+              HostName $W4
+              User entelektuelmaganda
+          EOF
+          fi
+
           chmod 600 ~/.ssh/config
 
       - name: Populate known hosts dynamically
@@ -183,6 +197,7 @@ jobs:
           WORKER_1_IP: ${{ inputs.worker_1_ip }}
           WORKER_2_IP: ${{ inputs.worker_2_ip }}
           WORKER_3_IP: ${{ inputs.worker_3_ip }}
+          WORKER_4_IP: ${{ inputs.worker_4_ip }}
         run: |
           M1="${MASTER_1_IP}"
           M2="${MASTER_2_IP}"
@@ -190,6 +205,7 @@ jobs:
           W1="${WORKER_1_IP}"
           W2="${WORKER_2_IP}"
           W3="${WORKER_3_IP}"
+          W4="${WORKER_4_IP}"
 
           VAULT_ARG=""
           if [ -f .vault_pass ]; then
@@ -203,6 +219,7 @@ jobs:
           [ -n "$W1" ] && EXTRA_VARS="$EXTRA_VARS -e k3s_worker1_public_ip=$W1"
           [ -n "$W2" ] && EXTRA_VARS="$EXTRA_VARS -e k3s_worker2_public_ip=$W2"
           [ -n "$W3" ] && EXTRA_VARS="$EXTRA_VARS -e k3s_worker3_public_ip=$W3"
+          [ -n "$W4" ] && EXTRA_VARS="$EXTRA_VARS -e k3s_worker4_public_ip=$W4"
 
           ansible-playbook -i inventory.ini playbook.yml $VAULT_ARG $EXTRA_VARS
 
