@@ -45,6 +45,12 @@ on:
         required: false
       ANSIBLE_VAULT_PASSWORD:
         required: false
+      GCP_SSH_USER:
+        required: false
+      AWS_SSH_USER:
+        required: false
+      AZURE_SSH_USER:
+        required: false
 
 jobs:
   run-playbook:
@@ -78,21 +84,28 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Select SSH key for target cloud provider
-        id: select-ssh-key
+      - name: Select SSH key and user for target cloud provider
+        id: select-ssh-config
         env:
           CLOUD_PROVIDER: ${{ inputs.cloud_provider }}
           GCP_KEY: ${{ secrets.GCP_SSH_PRIVATE_KEY }}
           AWS_KEY: ${{ secrets.AWS_SSH_PRIVATE_KEY }}
           AZURE_KEY: ${{ secrets.AZURE_SSH_PRIVATE_KEY }}
+          GCP_USER: ${{ secrets.GCP_SSH_USER }}
+          AWS_USER: ${{ secrets.AWS_SSH_USER }}
+          AZURE_USER: ${{ secrets.AZURE_SSH_USER }}
         run: |
           SELECTED_KEY=""
+          SELECTED_USER=""
           if [ "$CLOUD_PROVIDER" = "gcp" ]; then
             SELECTED_KEY="$GCP_KEY"
+            SELECTED_USER="${GCP_USER:-entelektuelmaganda}"
           elif [ "$CLOUD_PROVIDER" = "aws" ]; then
             SELECTED_KEY="$AWS_KEY"
+            SELECTED_USER="${AWS_USER:-ubuntu}"
           elif [ "$CLOUD_PROVIDER" = "azure" ]; then
             SELECTED_KEY="$AZURE_KEY"
+            SELECTED_USER="${AZURE_USER:-azureuser}"
           fi
 
           if [ -z "$SELECTED_KEY" ]; then
@@ -103,11 +116,13 @@ jobs:
           echo "key<<EOF" >> $GITHUB_OUTPUT
           echo "$SELECTED_KEY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
+          
+          echo "user=$SELECTED_USER" >> $GITHUB_OUTPUT
 
       - name: Set up SSH agent
         uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ steps.select-ssh-key.outputs.key }}
+          ssh-private-key: ${{ steps.select-ssh-config.outputs.key }}
 
       - name: Create Vault password file
         env:
@@ -119,6 +134,7 @@ jobs:
 
       - name: Configure SSH host mapping
         env:
+          SSH_USER: ${{ steps.select-ssh-config.outputs.user }}
           MASTER_1_IP: ${{ inputs.master_1_ip }}
           MASTER_2_IP: ${{ inputs.master_2_ip }}
           MASTER_3_IP: ${{ inputs.master_3_ip }}
@@ -141,26 +157,26 @@ jobs:
           cat << EOF > ~/.ssh/config
           Host master-1
               HostName $M1
-              User entelektuelmaganda
+              User $SSH_USER
 
           Host worker-1
               HostName $W1
-              User entelektuelmaganda
+              User $SSH_USER
 
           Host worker-2
               HostName $W2
-              User entelektuelmaganda
+              User $SSH_USER
 
           Host worker-3
               HostName $W3
-              User entelektuelmaganda
+              User $SSH_USER
           EOF
 
           if [ -n "$M2" ]; then
             cat << EOF >> ~/.ssh/config
           Host master-2
               HostName $M2
-              User entelektuelmaganda
+              User $SSH_USER
           EOF
           fi
 
@@ -168,7 +184,7 @@ jobs:
             cat << EOF >> ~/.ssh/config
           Host master-3
               HostName $M3
-              User entelektuelmaganda
+              User $SSH_USER
           EOF
           fi
 
@@ -176,7 +192,7 @@ jobs:
             cat << EOF >> ~/.ssh/config
           Host worker-4
               HostName $W4
-              User entelektuelmaganda
+              User $SSH_USER
           EOF
           fi
 
