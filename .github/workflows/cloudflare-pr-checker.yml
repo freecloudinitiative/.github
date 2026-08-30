@@ -55,6 +55,7 @@ jobs:
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: ${{ inputs.terraform_version }}
+          terraform_wrapper: false
 
       - name: Terraform Format Check
         run: terraform fmt -check -recursive ${{ matrix.directory }}
