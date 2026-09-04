@@ -104,7 +104,7 @@ jobs:
   sonar:
     name: SonarQube analysis
     needs: test
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
       SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
