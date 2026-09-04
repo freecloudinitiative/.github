@@ -133,7 +133,9 @@ jobs:
         with:
           name: sonar-coverage
           path: coverage
-      - name: Analyze with SonarQube Cloud
+      - name: Analyze with SonarQube Cloud (attempt 1)
+        id: sonar-scan-1
+        continue-on-error: true
         uses: SonarSource/sonarqube-scan-action@v8
         with:
           args: >-
@@ -146,6 +148,34 @@ jobs:
           env.SONAR_TOKEN != '' &&
           (github.event_name != 'pull_request' ||
           github.event.pull_request.head.repo.full_name == github.repository)
+      - name: Wait before retrying SonarQube Cloud
+        if: steps.sonar-scan-1.outcome == 'failure'
+        run: sleep 15
+      - name: Analyze with SonarQube Cloud (attempt 2)
+        id: sonar-scan-2
+        continue-on-error: true
+        if: steps.sonar-scan-1.outcome == 'failure'
+        uses: SonarSource/sonarqube-scan-action@v8
+        with:
+          args: >-
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.organization=${{ github.repository_owner }}
+            -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Wait before final SonarQube Cloud attempt
+        if: steps.sonar-scan-2.outcome == 'failure'
+        run: sleep 30
+      - name: Analyze with SonarQube Cloud (attempt 3)
+        if: steps.sonar-scan-2.outcome == 'failure'
+        uses: SonarSource/sonarqube-scan-action@v8
+        with:
+          args: >-
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.organization=${{ github.repository_owner }}
+            -Dsonar.projectKey=${{ github.repository_owner }}_${{ github.event.repository.name }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
       - name: Report unavailable Sonar token
         if: >-
           env.SONAR_TOKEN == '' ||
